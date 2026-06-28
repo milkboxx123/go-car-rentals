@@ -1,0 +1,33 @@
+---
+description: Use the in-app design system as the canonical UI reference when building or modifying Go components.
+globs:
+  - src/components/**
+  - src/app/**
+  - src/design-system/**
+---
+
+# Go Design System
+
+## Canonical reference
+
+- **Gallery:** `/design-system` at `http://localhost:3000/design-system`
+- **Contributor guide:** `docs/DESIGN_SYSTEM.md`
+- **Tokens:** `src/design-system/tokens/` and `src/app/globals.css`
+
+There is no Storybook. Do not add Storybook stories or dependencies.
+
+## Rules when building UI
+
+1. Check `/design-system` and existing components before creating new ones.
+2. Use semantic tokens (`go-gold`, `go-ink`, `go-cream`, etc.) — no hardcoded hex in components.
+3. Follow layering: `ui/` → `go/` → domain (`marketing/`, `booking/`, `admin/`, `layout/`).
+4. When adding or changing a **shared** component, update:
+   - `src/components/design-system/component-registry.ts`
+   - The matching section in `src/components/design-system/sections/`
+5. Use `Link variant="button"` inside `Button asChild` for link-styled buttons.
+6. Use mock data from `src/mock/` for previews and examples.
+
+## Do not
+
+- Link `/design-system` from public marketing pages (it is noindex).
+- Introduce parallel documentation tools (Storybook, etc.).

@@ -1,0 +1,15 @@
+export const typography = {
+  displayXl: { fontSize: "4.5rem", lineHeight: "0.95", letterSpacing: "-0.04em", fontWeight: "700" },
+  displayLg: { fontSize: "3.5rem", lineHeight: "1", letterSpacing: "-0.035em", fontWeight: "700" },
+  displayMd: { fontSize: "2.75rem", lineHeight: "1.05", letterSpacing: "-0.03em", fontWeight: "700" },
+  headingXl: { fontSize: "2.5rem", lineHeight: "1.1", letterSpacing: "-0.025em", fontWeight: "700" },
+  headingLg: { fontSize: "2rem", lineHeight: "1.15", letterSpacing: "-0.02em", fontWeight: "600" },
+  headingMd: { fontSize: "1.5rem", lineHeight: "1.2", letterSpacing: "-0.015em", fontWeight: "600" },
+  headingSm: { fontSize: "1.25rem", lineHeight: "1.25", fontWeight: "600" },
+  bodyLg: { fontSize: "1.125rem", lineHeight: "1.6", fontWeight: "400" },
+  bodyMd: { fontSize: "1rem", lineHeight: "1.55", fontWeight: "400" },
+  bodySm: { fontSize: "0.875rem", lineHeight: "1.45", fontWeight: "400" },
+  caption: { fontSize: "0.75rem", lineHeight: "1.35", fontWeight: "400" },
+  label: { fontSize: "0.8125rem", lineHeight: "1.2", fontWeight: "600" },
+  button: { fontSize: "0.9375rem", lineHeight: "1", fontWeight: "700" },
+} as const;
