@@ -83,7 +83,7 @@ export function Logo({
       className={cn(logoVariants({ variant, size }), className)}
       {...props}
     >
-      <span className={wordmarkVariants({ variant })}>Go</span>
+      <span className={wordmarkVariants({ variant })}>GO</span>
       {locationLabel ? (
         <span className={locationVariants({ variant, size })}>
           {locationLabel}

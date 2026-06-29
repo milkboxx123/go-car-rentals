@@ -4,6 +4,7 @@ import * as React from "react";
 import { Menu, Search } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
 
+import { AccountMenu } from "@/components/layout/account-menu";
 import { Logo } from "@/components/go/logo";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
@@ -15,17 +16,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
-import { locations } from "@/mock";
 import { cn } from "@/lib/utils";
 import type { Location } from "@/types";
 
 const NAV_LINKS = [
   { href: "/search", label: "Browse cars" },
-  { href: "/locations", label: "Locations" },
-  { href: "/monthly", label: "Monthly rentals" },
   { href: "/how-it-works", label: "How it works" },
-  { href: "/partner", label: "List with us" },
 ] as const;
 
 const headerVariants = cva(
@@ -75,6 +71,9 @@ export interface MarketingHeaderProps
     VariantProps<typeof headerVariants> {
   location?: string | Location;
   transparent?: boolean;
+  userName?: string;
+  userInitials?: string;
+  isAuthenticated?: boolean;
 }
 
 function resolveLocation(location?: string | Location) {
@@ -87,6 +86,9 @@ export function MarketingHeader({
   location,
   variant = "default",
   transparent = true,
+  userName = "Guest",
+  userInitials = "G",
+  isAuthenticated = false,
   className,
   ...props
 }: MarketingHeaderProps) {
@@ -127,7 +129,7 @@ export function MarketingHeader({
       <div className="container-marketing flex h-16 items-center justify-between gap-4 lg:h-[4.5rem]">
         <div className="flex min-w-0 items-center gap-6">
           <Link
-            href={locationLabel ? `/locations/${locationLabel.toLowerCase()}` : "/"}
+            href="/"
             className="shrink-0 rounded-md"
             aria-label={locationLabel ? `Go ${locationLabel} home` : "Go home"}
           >
@@ -167,23 +169,38 @@ export function MarketingHeader({
             </Link>
           </Button>
 
-          <Link
-            href="/account"
-            variant="nav"
-            className={cn(
-              "hidden text-body-sm md:inline-flex",
-              isDark && "text-go-paper hover:text-go-gold"
-            )}
-          >
-            Log in
-          </Link>
+          {isAuthenticated ? (
+            <div className="hidden md:block">
+              <AccountMenu
+                userName={userName}
+                userInitials={userInitials}
+                isAuthenticated={isAuthenticated}
+                variant={isDark ? "dark" : "default"}
+                showName={false}
+              />
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              variant="nav"
+              className={cn(
+                "hidden text-body-sm md:inline-flex",
+                isDark && "text-go-paper hover:text-go-gold"
+              )}
+            >
+              Log in
+            </Link>
+          )}
 
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <IconButton
                 variant={isDark ? "outline" : "ghost"}
                 size="sm"
-                className={cn(isDark && "border-go-ink-soft text-go-paper")}
+                className={cn(
+                  "lg:hidden",
+                  isDark && "border-go-ink-soft text-go-paper"
+                )}
                 aria-label="Open menu"
                 aria-expanded={mobileOpen}
               >
@@ -214,27 +231,6 @@ export function MarketingHeader({
                 ))}
               </nav>
 
-              <Separator className="my-6" />
-
-              <div className="space-y-3">
-                <p className="px-3 text-caption font-semibold uppercase tracking-wide text-go-muted">
-                  Locations
-                </p>
-                <div className="grid grid-cols-2 gap-1">
-                  {locations.map((loc) => (
-                    <Link
-                      key={loc.id}
-                      href={`/locations/${loc.slug}`}
-                      variant="subtle"
-                      className="rounded-md px-3 py-2"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      Go {loc.city}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
               <div className="mt-8 flex flex-col gap-3">
                 <Button asChild fullWidth>
                   <Link href="/search" variant="button" onClick={() => setMobileOpen(false)}>
@@ -242,11 +238,27 @@ export function MarketingHeader({
                     Book a car
                   </Link>
                 </Button>
-                <Button asChild variant="outline" fullWidth>
-                  <Link href="/account" variant="button" onClick={() => setMobileOpen(false)}>
-                    Log in
-                  </Link>
-                </Button>
+                {isAuthenticated ? (
+                  <Button asChild variant="outline" fullWidth>
+                    <Link
+                      href="/account/profile"
+                      variant="button"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      My account
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button asChild variant="outline" fullWidth>
+                    <Link
+                      href="/login"
+                      variant="button"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Log in
+                    </Link>
+                  </Button>
+                )}
               </div>
             </SheetContent>
           </Sheet>

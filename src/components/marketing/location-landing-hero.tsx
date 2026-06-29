@@ -8,14 +8,25 @@ import { cn } from "@/lib/utils";
 export interface LocationLandingHeroProps {
   location: Location;
   vehicleCount?: number;
+  title?: string;
+  subtitle?: string;
   className?: string;
 }
 
 export function LocationLandingHero({
   location,
   vehicleCount,
+  title,
+  subtitle,
   className,
 }: LocationLandingHeroProps) {
+  const heading = title ?? `Car rentals in ${location.city}, ${location.state}`;
+  const description =
+    subtitle ??
+    `${location.name} serves ${location.region} with airport pickup${
+      location.deliveryAvailable ? " and delivery" : ""
+    }.${vehicleCount !== undefined ? ` Browse ${vehicleCount} vehicles ready to book.` : ""}`;
+
   return (
     <section className={cn("relative overflow-hidden", className)}>
       <div className="absolute inset-0">
@@ -36,14 +47,10 @@ export function LocationLandingHero({
             {location.airport.code} · {location.airport.name}
           </Badge>
           <h1 className="text-heading-xl font-bold text-go-paper sm:text-display-md">
-            Car rentals in {location.city}, {location.state}
+            {heading}
           </h1>
           <p className="mt-3 text-body-lg text-go-paper/85">
-            {location.name} serves {location.region} with airport pickup
-            {location.deliveryAvailable ? " and delivery" : ""}.
-            {vehicleCount !== undefined && (
-              <> Browse {vehicleCount} vehicles ready to book.</>
-            )}
+            {description}
           </p>
         </div>
 

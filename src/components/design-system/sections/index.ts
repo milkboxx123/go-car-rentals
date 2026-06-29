@@ -12,4 +12,5 @@ export { GoFormsSection } from "./go-forms-section";
 export { MarketingSection } from "./marketing-section";
 export { BookingSection } from "./booking-section";
 export { AdminSections } from "./admin-section";
+export { AccountSections } from "./account-section";
 export { LayoutSections } from "./layout-section";

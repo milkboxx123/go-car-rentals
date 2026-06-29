@@ -1,5 +1,4 @@
 import { Link } from "@/components/ui/link";
-import { locations } from "@/mock";
 import { VEHICLE_TYPE_OPTIONS } from "@/mock/filters";
 import { cn } from "@/lib/utils";
 
@@ -21,20 +20,7 @@ export function SeoInternalLinks({
     >
       <div className="container-marketing">
         <h2 className="sr-only">{title}</h2>
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <h3 className="mb-3 text-label text-go-ink">Locations</h3>
-            <ul className="space-y-2">
-              {locations.map((loc) => (
-                <li key={loc.id}>
-                  <Link href={`/locations/${loc.slug}`} variant="footer">
-                    Car rental {loc.city}, {loc.state}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
+        <div className="grid gap-8 sm:grid-cols-2">
           <div>
             <h3 className="mb-3 text-label text-go-ink">Vehicle types</h3>
             <ul className="space-y-2">
@@ -54,11 +40,6 @@ export function SeoInternalLinks({
               <li>
                 <Link href="/search?category=airports" variant="footer">
                   Airport car rental
-                </Link>
-              </li>
-              <li>
-                <Link href="/search?category=monthly" variant="footer">
-                  Monthly car rental
                 </Link>
               </li>
               <li>

@@ -1,18 +1,31 @@
 import {
   AirportRentalSection,
+  ComparisonTable,
   CtaSection,
   FaqAccordion,
+  FAQSection,
+  FeatureCard,
   HeroSearchSection,
   HowItWorks,
+  InternalLinksSection,
+  LocationCard,
+  LocationGrid,
   LocationLandingHero,
+  MarketingSection as MarketingSectionLayout,
   MonthlyRentalSection,
+  PageHero,
   ReviewSection,
   SearchPanel,
   SeoInternalLinks,
+  StepCard,
   TrustSection,
   VehicleCarouselSection,
   VehicleTypeGrid,
 } from "@/components/marketing";
+import { locationsIndexFaqs } from "@/content/faqs";
+import { locations as locationContent } from "@/content/locations";
+import { monthlyRentalsContent } from "@/content/marketing-pages";
+import { Car } from "lucide-react";
 import { DsPreview, DsSection, DsSubsection } from "@/components/design-system";
 import { getLocationBySlug, vehicles } from "@/mock";
 
@@ -173,11 +186,157 @@ export function MarketingSection() {
       <DsSection
         id="seo-internal-links"
         title="SeoInternalLinks"
-        description="Footer-style internal links for locations, vehicle types, and topics."
+        description="Footer-style internal links for vehicle types and popular searches."
         importPath='import { SeoInternalLinks } from "@/components/marketing"'
       >
         <DsPreview>
           <SeoInternalLinks />
+        </DsPreview>
+      </DsSection>
+
+      <DsSection
+        id="page-hero"
+        title="PageHero"
+        description="Generic marketing page hero with eyebrow, title, subtitle, CTAs, and optional background image."
+        importPath='import { PageHero } from "@/components/marketing"'
+      >
+        <DsPreview fullBleed>
+          <PageHero
+            eyebrow="Search"
+            title="Find the right car for the way you move"
+            subtitle="Browse available vehicles by city, airport, and trip type."
+            primaryCta={{ href: "/search", label: "Browse cars" }}
+            backgroundImage="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600&q=80"
+          />
+        </DsPreview>
+      </DsSection>
+
+      <DsSection
+        id="marketing-section"
+        title="MarketingSection"
+        description="Layout wrapper with background and spacing variants."
+        importPath='import { MarketingSection } from "@/components/marketing"'
+      >
+        <DsPreview fullBleed>
+          <MarketingSectionLayout background="muted">
+            <p className="text-body-lg text-go-muted">Section content goes here.</p>
+          </MarketingSectionLayout>
+        </DsPreview>
+      </DsSection>
+
+      <DsSection
+        id="feature-card"
+        title="FeatureCard"
+        description="Icon card for value props and feature highlights."
+        importPath='import { FeatureCard } from "@/components/marketing"'
+      >
+        <DsPreview>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FeatureCard icon={Car} title="Exact vehicle selection" description="Book the specific car you see." />
+            <FeatureCard title="Flexible lengths" description="Daily, weekly, and monthly options." href="/search" />
+          </div>
+        </DsPreview>
+      </DsSection>
+
+      <DsSection
+        id="step-card"
+        title="StepCard"
+        description="Numbered step card for process flows."
+        importPath='import { StepCard } from "@/components/marketing"'
+      >
+        <DsPreview>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <StepCard step={1} title="Search" description="Enter city and dates." />
+            <StepCard step={2} title="Choose" description="Pick your vehicle." />
+            <StepCard step={3} title="Drive" description="Pick up and go." />
+          </div>
+        </DsPreview>
+      </DsSection>
+
+      <DsSection
+        id="location-card"
+        title="LocationCard"
+        description="City location card with airport and rental badges."
+        importPath='import { LocationCard } from "@/components/marketing"'
+      >
+        <DsPreview>
+          <LocationCard
+            city={locationContent[0].city}
+            state={locationContent[0].stateAbbreviation}
+            brandName={locationContent[0].brandName}
+            airportName={locationContent[0].airportName}
+            airportCode={locationContent[0].airportCode}
+            href={`/search?location=${locationContent[0].slug}`}
+            imageUrl={locationContent[0].imageUrl}
+            badges={["Airport pickup", "Monthly"]}
+          />
+        </DsPreview>
+      </DsSection>
+
+      <DsSection
+        id="location-grid"
+        title="LocationGrid"
+        description="Responsive grid of location cards."
+        importPath='import { LocationGrid } from "@/components/marketing"'
+      >
+        <DsPreview>
+          <LocationGrid
+            locations={locationContent.slice(0, 3).map((loc) => ({
+              city: loc.city,
+              state: loc.stateAbbreviation,
+              brandName: loc.brandName,
+              airportName: loc.airportName,
+              airportCode: loc.airportCode,
+              href: `/search?location=${loc.slug}`,
+              imageUrl: loc.imageUrl,
+            }))}
+          />
+        </DsPreview>
+      </DsSection>
+
+      <DsSection
+        id="faq-section"
+        title="FAQSection"
+        description="FAQ section with accordion and optional schema data."
+        importPath='import { FAQSection } from "@/components/marketing"'
+      >
+        <DsPreview fullBleed>
+          <FAQSection items={locationsIndexFaqs.slice(0, 3)} />
+        </DsPreview>
+      </DsSection>
+
+      <DsSection
+        id="internal-links-section"
+        title="InternalLinksSection"
+        description="Grouped internal links for SEO and navigation."
+        importPath='import { InternalLinksSection } from "@/components/marketing"'
+      >
+        <DsPreview fullBleed>
+          <InternalLinksSection
+            groups={[
+              {
+                title: "Popular pages",
+                links: [
+                  { href: "/search", label: "Browse cars" },
+                  { href: "/how-it-works", label: "How it works" },
+                ],
+              },
+            ]}
+          />
+        </DsPreview>
+      </DsSection>
+
+      <DsSection
+        id="comparison-table"
+        title="ComparisonTable"
+        description="Responsive comparison table for feature matrices."
+        importPath='import { ComparisonTable } from "@/components/marketing"'
+      >
+        <DsPreview>
+          <ComparisonTable
+            headers={monthlyRentalsContent.comparison.headers}
+            rows={[...monthlyRentalsContent.comparison.rows.slice(0, 3)]}
+          />
         </DsPreview>
       </DsSection>
     </>

@@ -1,7 +1,7 @@
 export { MarketingHeader, type MarketingHeaderProps } from "./marketing-header";
-export { AppHeader, type AppHeaderProps, type AppHeaderSearchSummary } from "./app-header";
+export { AppHeader, type AppHeaderProps } from "./app-header";
 export { AdminHeader, type AdminHeaderProps, type AdminBreadcrumbItem } from "./admin-header";
-export { Footer, type FooterProps } from "./footer";
+export { Footer, MarketingFooter, type FooterProps } from "./footer";
 export {
   Sidebar,
   ADMIN_NAV_ITEMS,

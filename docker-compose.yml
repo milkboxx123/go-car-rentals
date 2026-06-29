@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: go-rentals-db
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: gorentals
+      POSTGRES_PASSWORD: gorentals
+      POSTGRES_DB: gorentals
+    volumes:
+      - go_rentals_pgdata:/var/lib/postgresql/data
+
+volumes:
+  go_rentals_pgdata:

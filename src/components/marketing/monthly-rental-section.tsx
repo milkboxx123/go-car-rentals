@@ -58,7 +58,7 @@ export function MonthlyRentalSection({
               </p>
             )}
             <Button asChild size="lg" className="mt-8">
-              <Link href="/search?category=monthly" variant="button">Explore monthly rates</Link>
+              <Link href="/search" variant="button">Explore monthly rates</Link>
             </Button>
           </div>
         </div>

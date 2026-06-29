@@ -10,7 +10,6 @@ import {
   TripSummaryCard,
 } from "@/components/booking";
 import { TextInput } from "@/components/go/forms";
-import { AppHeader } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { getVehicleById, reservations } from "@/mock";
@@ -58,8 +57,6 @@ export function CheckoutPageClient() {
 
   return (
     <div className="min-h-screen bg-go-cream pb-24">
-      <AppHeader userName="Sarah Mitchell" userInitials="SM" />
-
       <div className="container-marketing py-6">
         <header className="mb-8 space-y-2">
           <h1 className="text-heading-lg font-bold text-go-ink">Checkout</h1>

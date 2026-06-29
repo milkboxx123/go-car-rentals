@@ -51,7 +51,7 @@ export function LayoutSections() {
       <DsSection
         id="app-header"
         title="AppHeader"
-        description="Booking flow header with editable search summary, favorites, and account menu."
+        description="Booking flow header with favorites and account menu."
         importPath='import { AppHeader } from "@/components/layout"'
       >
         <DsPreview fullBleed className="overflow-hidden">
@@ -59,12 +59,6 @@ export function LayoutSections() {
             userName="Jordan Lee"
             userInitials="JL"
             favoritesCount={4}
-            searchSummary={{
-              location: "Tampa, FL",
-              startDate: new Date(2026, 5, 28),
-              endDate: new Date(2026, 6, 2),
-              href: "/search",
-            }}
           />
         </DsPreview>
       </DsSection>

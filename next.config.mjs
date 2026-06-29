@@ -14,6 +14,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/monthly",
+        destination: "/monthly-rentals",
+        permanent: true,
+      },
+      {
+        source: "/partner",
+        destination: "/list-with-us",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

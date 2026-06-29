@@ -4,6 +4,7 @@ import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { VehicleCard } from "@/components/booking/vehicle-card";
+import { useFavorites } from "@/components/booking/favorites-provider";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { vehicles } from "@/mock";
@@ -26,6 +27,7 @@ export function VehicleCarouselSection({
   className,
 }: VehicleCarouselSectionProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
+  const { favoriteIds, toggleFavorite } = useFavorites();
 
   const scroll = (direction: "left" | "right") => {
     const el = scrollRef.current;
@@ -66,13 +68,15 @@ export function VehicleCarouselSection({
 
         <div
           ref={scrollRef}
-          className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 scrollbar-thin sm:-mx-0 sm:px-0"
+          className="-mx-4 flex gap-4 overflow-x-auto px-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:-mx-0 sm:px-0"
         >
           {vehicleList.map((vehicle) => (
             <VehicleCard
               key={vehicle.id}
               vehicle={vehicle}
               variant="carousel"
+              isFavorite={favoriteIds.has(vehicle.id)}
+              onFavoriteToggle={() => void toggleFavorite(vehicle.id)}
             />
           ))}
         </div>
