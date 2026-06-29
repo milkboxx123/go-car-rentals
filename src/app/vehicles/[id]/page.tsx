@@ -3,12 +3,13 @@ import { notFound } from "next/navigation";
 
 import {
   BookingCard,
-  VehicleCard,
   VehicleDetailHeader,
-  VehicleImageGallery,
+  VehicleDetailHero,
   VehicleSpecsGrid,
 } from "@/components/booking";
-import { AppHeader } from "@/components/layout";
+import { SimilarVehiclesGrid } from "@/components/booking/similar-vehicles-grid";
+import { Footer } from "@/components/layout";
+import { AppHeaderShell } from "@/components/layout/app-header-shell";
 import { getVehicleById, vehicles } from "@/mock";
 import { formatVehicleName } from "@/lib/formatters";
 
@@ -55,12 +56,12 @@ export default async function VehicleDetailPage({ params }: VehicleDetailPagePro
 
   return (
     <div className="min-h-screen bg-go-cream">
-      <AppHeader userName="Guest" userInitials="G" />
+      <AppHeaderShell />
 
       <div className="container-marketing py-6">
         <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
           <div className="space-y-8">
-            <VehicleImageGallery images={vehicle.images} />
+            <VehicleDetailHero vehicleId={vehicle.id} images={vehicle.images} />
             <VehicleDetailHeader vehicle={vehicle} />
 
             {vehicle.description && (
@@ -91,16 +92,7 @@ export default async function VehicleDetailPage({ params }: VehicleDetailPagePro
             {similarVehicles.length > 0 && (
               <section>
                 <h2 className="mb-4 text-heading-sm font-bold text-go-ink">Similar vehicles</h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {similarVehicles.map((item) => (
-                    <VehicleCard
-                      key={item.id}
-                      vehicle={item}
-                      href={`/vehicles/${item.id}`}
-                      showTripTotal
-                    />
-                  ))}
-                </div>
+                <SimilarVehiclesGrid vehicles={similarVehicles} />
               </section>
             )}
           </div>
@@ -123,6 +115,8 @@ export default async function VehicleDetailPage({ params }: VehicleDetailPagePro
         days={tripDays}
         ctaLabel="Reserve"
       />
+
+      <Footer />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 export { VehicleCard, VehicleCardSkeleton, type VehicleCardProps } from "./vehicle-card";
 export { VehicleImageGallery } from "./vehicle-image-gallery";
+export { VehicleDetailHero } from "./vehicle-detail-hero";
 export { VehicleDetailHeader } from "./vehicle-detail-header";
 export { VehicleSpecsGrid } from "./vehicle-specs-grid";
 export { BookingCard, type BookingCardProps } from "./booking-card";

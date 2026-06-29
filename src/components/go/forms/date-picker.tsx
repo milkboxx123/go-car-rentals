@@ -284,18 +284,23 @@ function DatePicker({
       id={fieldId}
       type="button"
       disabled={disabled}
-      aria-invalid={error ? true : undefined}
       aria-describedby={describedBy || undefined}
       aria-haspopup="dialog"
       aria-expanded={open}
       className={cn(
         dateFieldTriggerVariants({ inputSize: "md" }),
-        !startDate && "text-go-muted",
         error && "border-go-danger focus-visible:ring-go-danger"
       )}
     >
       <Calendar className="size-4 shrink-0 text-go-muted" aria-hidden="true" />
-      <span className="min-w-0 flex-1 truncate text-left">{triggerLabel}</span>
+      <span
+        className={cn(
+          "min-w-0 flex-1 truncate text-left",
+          startDate ? "text-go-ink" : "text-go-muted"
+        )}
+      >
+        {triggerLabel}
+      </span>
     </button>
   );
 

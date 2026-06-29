@@ -8,42 +8,57 @@ import { cn } from "@/lib/utils";
 
 export interface AirportRentalSectionProps {
   title?: string;
+  description?: string;
+  airportName?: string;
+  airportCode?: string;
+  searchHref?: string;
+  id?: string;
   className?: string;
 }
 
 export function AirportRentalSection({
   title = "Airport pickup, simplified",
+  description = "Land and go. Curbside pickup at major airports with clear instructions sent before you arrive. No shuttle buses, no rental counter lines.",
+  airportName,
+  airportCode,
+  searchHref = "/search?category=airports",
+  id = "airport",
   className,
 }: AirportRentalSectionProps) {
+  const displayTitle =
+    airportName && airportCode
+      ? `${airportName} (${airportCode})`
+      : title;
+
   return (
-    <section className={cn("bg-go-ink py-12 text-go-paper sm:py-16", className)}>
+    <section id={id} className={cn("bg-go-ink py-12 text-go-paper sm:py-16", className)}>
       <div className="container-marketing">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div>
             <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-go-gold text-go-ink">
               <Plane className="size-6" aria-hidden="true" />
             </div>
-            <h2 className="text-heading-lg font-bold">{title}</h2>
+            <h2 className="text-heading-lg font-bold">{displayTitle}</h2>
             <p className="mt-4 text-body-lg text-go-paper/80">
-              Land and go. Curbside pickup at major airports with clear
-              instructions sent before you arrive. No shuttle buses, no rental
-              counter lines.
+              {description}
             </p>
-            <ul className="mt-6 space-y-3">
-              {locations.map((loc) => (
-                <li key={loc.id}>
-                  <Link
-                    href={`/locations/${loc.slug}`}
-                    variant="underline"
-                    className="text-go-paper hover:text-go-gold"
-                  >
-                    {loc.airport.code} — {loc.city}, {loc.state}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {!airportName ? (
+              <ul className="mt-6 space-y-3">
+                {locations.map((loc) => (
+                  <li key={loc.id}>
+                    <Link
+                      href={`/search?location=${loc.slug}`}
+                      variant="underline"
+                      className="text-go-paper hover:text-go-gold"
+                    >
+                      {loc.airport.code} — {loc.city}, {loc.state}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
             <Button asChild variant="gold" size="lg" className="mt-8">
-              <Link href="/search?category=airports" variant="button">Browse airport rentals</Link>
+              <Link href={searchHref} variant="button">Search airport rentals</Link>
             </Button>
           </div>
 

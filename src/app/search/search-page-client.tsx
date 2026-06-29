@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { NoVehiclesFound, VehicleCard } from "@/components/booking";
-import { SearchPanel } from "@/components/marketing";
-import { AppHeader } from "@/components/layout";
+import { useFavorites } from "@/components/booking/favorites-provider";
+import { SearchPanel, type SearchPanelValues } from "@/components/marketing";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -16,13 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -34,6 +29,7 @@ import {
 } from "@/mock";
 import { DEFAULT_SEARCH_FILTERS } from "@/mock/filters";
 import type { Vehicle } from "@/types";
+import { buildSearchUrl, parseSearchInputFromParams } from "@/lib/search";
 import { cn } from "@/lib/utils";
 
 function sortVehicles(list: Vehicle[], sort: string): Vehicle[] {
@@ -292,9 +288,29 @@ function FiltersSidebar({
 }
 
 export function SearchPageClient() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { favoriteIds, toggleFavorite } = useFavorites();
+  const initialSearch = React.useMemo(
+    () => parseSearchInputFromParams(searchParams),
+    [searchParams]
+  );
+  const [searchValues, setSearchValues] = React.useState<SearchPanelValues>({
+    location: initialSearch.location ?? "tampa",
+    pickupDate: initialSearch.pickupDate ?? "",
+    returnDate: initialSearch.returnDate ?? "",
+  });
   const [filters, setFilters] = React.useState<SearchFilters>(DEFAULT_SEARCH_FILTERS);
   const [sort, setSort] = React.useState("recommended");
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    setSearchValues({
+      location: initialSearch.location ?? "tampa",
+      pickupDate: initialSearch.pickupDate ?? "",
+      returnDate: initialSearch.returnDate ?? "",
+    });
+  }, [initialSearch]);
 
   const availableVehicles = React.useMemo(
     () => vehicles.filter((v) => v.status === "available"),
@@ -314,33 +330,21 @@ export function SearchPageClient() {
 
   return (
     <div className="min-h-screen bg-go-cream">
-      <AppHeader
-        searchSummary={{
-          location: "Tampa, FL",
-          startDate: new Date("2026-07-10"),
-          endDate: new Date("2026-07-14"),
-          href: "/search",
-        }}
-        userName="Sarah Mitchell"
-        userInitials="SM"
-      />
-
       <div className="container-marketing py-6">
         <SearchPanel
           variant="results"
-          values={{ location: "tampa", sort }}
+          values={searchValues}
+          onValuesChange={setSearchValues}
+          onSearch={(values) => router.push(buildSearchUrl(values))}
           resultCount={results.length}
           onFiltersClick={() => setMobileFiltersOpen(true)}
-          onValuesChange={(values) => {
-            if (values.sort) setSort(values.sort);
-          }}
         />
 
         <div className="mt-6 flex items-center justify-between gap-4">
           <p className="text-body-sm text-go-muted">
             <span className="font-semibold text-go-ink">{results.length}</span> vehicles available
           </p>
-          <div className="hidden items-center gap-2 sm:flex">
+          <div className="flex items-center gap-2">
             <span className="text-body-sm text-go-muted">Sort by</span>
             <Select value={sort} onValueChange={setSort}>
               <SelectTrigger className="w-44">
@@ -357,12 +361,12 @@ export function SearchPageClient() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-8 lg:grid-cols-[240px_1fr]">
+        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(260px,280px)_1fr]">
           <FiltersSidebar
             filters={filters}
             onChange={updateFilters}
             onReset={resetFilters}
-            className="hidden lg:block"
+            className="hidden min-w-0 lg:block lg:pr-2"
           />
 
           <div>
@@ -376,6 +380,8 @@ export function SearchPageClient() {
                     vehicle={vehicle}
                     href={`/vehicles/${vehicle.id}`}
                     showTripTotal
+                    isFavorite={favoriteIds.has(vehicle.id)}
+                    onFavoriteToggle={() => void toggleFavorite(vehicle.id)}
                   />
                 ))}
               </div>
@@ -388,23 +394,18 @@ export function SearchPageClient() {
         <SheetTrigger asChild>
           <span className="sr-only">Open filters</span>
         </SheetTrigger>
-        <SheetContent side="left" className="w-full max-w-sm overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Filters</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            <FiltersSidebar
-              filters={filters}
-              onChange={updateFilters}
-              onReset={resetFilters}
-            />
-            <Button
-              className="mt-6 w-full"
-              onClick={() => setMobileFiltersOpen(false)}
-            >
-              Show {results.length} vehicles
-            </Button>
-          </div>
+        <SheetContent
+          side="left"
+          className="flex w-full max-w-sm flex-col gap-6 overflow-y-auto p-6"
+        >
+          <FiltersSidebar
+            filters={filters}
+            onChange={updateFilters}
+            onReset={resetFilters}
+          />
+          <Button className="mt-auto w-full" onClick={() => setMobileFiltersOpen(false)}>
+            Show {results.length} vehicles
+          </Button>
         </SheetContent>
       </Sheet>
     </div>

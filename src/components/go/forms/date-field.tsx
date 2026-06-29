@@ -48,7 +48,7 @@ function toIsoDate(date: Date): string {
 
 const dateFieldTriggerVariants = cva(
   [
-    "flex w-full items-center rounded-md border border-go-border bg-go-paper text-left text-go-ink",
+    "flex w-full items-center rounded-md border border-go-border bg-go-paper text-left",
     "transition-colors duration-fast",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-go-gold focus-visible:ring-offset-2",
     "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-go-muted-light",
@@ -113,7 +113,8 @@ function DateField({
   const selectedDate = parseDateValue(value);
 
   React.useEffect(() => {
-    if (selectedDate) setMonth(selectedDate);
+    const parsed = parseDateValue(value);
+    if (parsed) setMonth(parsed);
   }, [value]);
 
   const describedBy = [helperText ? helperId : null, error ? errorId : null]
@@ -134,13 +135,11 @@ function DateField({
       id={fieldId}
       type="button"
       disabled={disabled}
-      aria-invalid={error ? true : undefined}
       aria-describedby={describedBy || undefined}
       aria-haspopup="dialog"
       aria-expanded={open}
       className={cn(
         dateFieldTriggerVariants({ inputSize }),
-        !selectedDate && "text-go-muted",
         error && "border-go-danger focus-visible:ring-go-danger",
         triggerClassName
       )}
@@ -149,7 +148,14 @@ function DateField({
         className="size-4 shrink-0 text-go-muted"
         aria-hidden="true"
       />
-      <span className="min-w-0 flex-1 truncate">{displayValue}</span>
+      <span
+        className={cn(
+          "min-w-0 flex-1 truncate",
+          selectedDate ? "text-go-ink" : "text-go-muted"
+        )}
+      >
+        {displayValue}
+      </span>
     </button>
   );
 

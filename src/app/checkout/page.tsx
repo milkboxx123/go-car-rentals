@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { Footer } from "@/components/layout";
+import { AppHeaderShell } from "@/components/layout/app-header-shell";
 import { CheckoutPageClient } from "./checkout-page-client";
 
 export const metadata: Metadata = {
@@ -8,5 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default function CheckoutPage() {
-  return <CheckoutPageClient />;
+  return (
+    <>
+      <AppHeaderShell />
+      <CheckoutPageClient />
+      <Footer />
+    </>
+  );
 }

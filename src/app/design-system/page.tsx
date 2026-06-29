@@ -1,5 +1,6 @@
 import {
   AdminSections,
+  AccountSections,
   BookingSection,
   FoundationsSections,
   GoBrandSection,
@@ -33,6 +34,7 @@ export default function DesignSystemPage() {
       <MarketingSection />
       <BookingSection />
       <AdminSections />
+      <AccountSections />
       <LayoutSections />
     </div>
   );

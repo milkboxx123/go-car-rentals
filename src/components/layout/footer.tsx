@@ -1,10 +1,7 @@
 import * as React from "react";
 import {
-  Facebook,
   Instagram,
-  Linkedin,
   Smartphone,
-  Twitter,
 } from "lucide-react";
 
 import { Logo } from "@/components/go/logo";
@@ -12,48 +9,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "@/components/ui/link";
 import { Separator } from "@/components/ui/separator";
-import { locations } from "@/mock";
+import {
+  footerBrand,
+  footerCompanyLinks,
+  footerLegalLinks,
+  footerPopularRentalLinks,
+} from "@/content/footer-links";
+import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
-const VEHICLE_TYPE_LINKS = [
-  { href: "/search?type=car", label: "Cars" },
-  { href: "/search?type=suv", label: "SUVs" },
-  { href: "/search?type=truck", label: "Trucks" },
-  { href: "/search?type=minivan", label: "Minivans" },
-  { href: "/search?type=luxury", label: "Luxury" },
-  { href: "/search?type=convertible", label: "Convertibles" },
-  { href: "/search?type=electric", label: "Electric" },
-  { href: "/search?type=van", label: "Vans" },
-] as const;
-
-const COMPANY_LINKS = [
-  { href: "/about", label: "About Go" },
-  { href: "/how-it-works", label: "How it works" },
-  { href: "/partner", label: "List with us" },
-  { href: "/careers", label: "Careers" },
-  { href: "/press", label: "Press" },
-] as const;
-
-const SUPPORT_LINKS = [
-  { href: "/support", label: "Help center" },
-  { href: "/support/contact", label: "Contact us" },
-  { href: "/support/cancellation", label: "Cancellation policy" },
-  { href: "/support/insurance", label: "Protection plans" },
-  { href: "/support/accessibility", label: "Accessibility" },
-] as const;
-
-const LEGAL_LINKS = [
-  { href: "/legal/terms", label: "Terms of service" },
-  { href: "/legal/privacy", label: "Privacy policy" },
-  { href: "/legal/cookies", label: "Cookie policy" },
-  { href: "/legal/sitemap", label: "Sitemap" },
-] as const;
-
 const SOCIAL_LINKS = [
-  { href: "https://instagram.com", label: "Instagram", icon: Instagram },
-  { href: "https://facebook.com", label: "Facebook", icon: Facebook },
-  { href: "https://twitter.com", label: "Twitter", icon: Twitter },
-  { href: "https://linkedin.com", label: "LinkedIn", icon: Linkedin },
+  { href: siteConfig.social.instagram, label: "Instagram", icon: Instagram },
 ] as const;
 
 function FooterColumn({
@@ -82,7 +48,12 @@ function FooterLinkItem({
 }) {
   return (
     <li>
-      <Link href={href} variant="footer" external={external} className="text-go-paper/70 hover:text-go-paper">
+      <Link
+        href={href}
+        variant="footer"
+        external={external}
+        className="text-go-paper/70 hover:text-go-paper"
+      >
         {label}
       </Link>
     </li>
@@ -110,10 +81,13 @@ export function Footer({
               <Logo variant="light" size="lg" />
             </Link>
             <p className="mt-4 max-w-sm text-body-sm text-go-paper/70">
-              Find the right car for the way you move. Airport pickup, local
-              delivery, and flexible rentals across Tampa, Boston, Miami, and
-              wherever Go launches next.
+              {footerBrand.tagline}
             </p>
+            <Button asChild variant="gold" size="sm" className="mt-6">
+              <Link href={footerBrand.cta.href} variant="button">
+                {footerBrand.cta.label}
+              </Link>
+            </Button>
 
             {showNewsletter ? (
               <div className="mt-8">
@@ -158,51 +132,24 @@ export function Footer({
             </div>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-4">
-            <FooterColumn title="Locations">
-              {locations.map((location) => (
-                <FooterLinkItem
-                  key={location.id}
-                  href={`/locations/${location.slug}`}
-                  label={`Go ${location.city}`}
-                />
-              ))}
-              <FooterLinkItem href="/locations" label="All locations" />
-            </FooterColumn>
-
-            <FooterColumn title="Vehicle types">
-              {VEHICLE_TYPE_LINKS.map((link) => (
+          <div className="grid gap-8 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-3">
+            <FooterColumn title="Popular rentals">
+              {footerPopularRentalLinks.map((link) => (
                 <FooterLinkItem key={link.href} {...link} />
               ))}
             </FooterColumn>
 
-            <FooterColumn title="Airport rentals">
-              {locations.map((location) => (
-                <FooterLinkItem
-                  key={`${location.id}-airport`}
-                  href={`/locations/${location.slug}/airport-car-rental`}
-                  label={`${location.airport.code} — ${location.city}`}
-                />
+            <FooterColumn title="Company">
+              {footerCompanyLinks.map((link) => (
+                <FooterLinkItem key={link.href} {...link} />
               ))}
-              <FooterLinkItem
-                href="/monthly"
-                label="Monthly rentals"
-              />
             </FooterColumn>
 
-            <div className="space-y-8">
-              <FooterColumn title="Company">
-                {COMPANY_LINKS.map((link) => (
-                  <FooterLinkItem key={link.href} {...link} />
-                ))}
-              </FooterColumn>
-
-              <FooterColumn title="Support">
-                {SUPPORT_LINKS.map((link) => (
-                  <FooterLinkItem key={link.href} {...link} />
-                ))}
-              </FooterColumn>
-            </div>
+            <FooterColumn title="Legal">
+              {footerLegalLinks.map((link) => (
+                <FooterLinkItem key={`${link.href}-${link.label}`} {...link} />
+              ))}
+            </FooterColumn>
           </div>
         </div>
 
@@ -233,29 +180,14 @@ export function Footer({
               </Button>
             </div>
           </div>
-
-          <nav aria-label="Legal">
-            <ul className="flex flex-wrap gap-x-6 gap-y-2">
-              {LEGAL_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    variant="footer"
-                    className="text-go-paper/50 hover:text-go-paper"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
         </div>
 
         <p className="mt-8 text-caption text-go-paper/50">
           &copy; {new Date().getFullYear()} Go Car Rentals. All rights reserved.
-          Skip the counter. Drive on your schedule.
         </p>
       </div>
     </footer>
   );
 }
+
+export { Footer as MarketingFooter };
