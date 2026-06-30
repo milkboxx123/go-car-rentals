@@ -3,7 +3,6 @@
 import { CreditCard } from "lucide-react";
 
 import { AccountEmptyState } from "@/components/account/account-empty-state";
-import { Button } from "@/components/ui/button";
 
 export interface PaymentEmptyStateProps {
   onAddCard?: () => void;

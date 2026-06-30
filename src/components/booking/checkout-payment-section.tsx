@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
-let stripePromiseCache: Record<string, Promise<Stripe | null>> = {};
+const stripePromiseCache: Record<string, Promise<Stripe | null>> = {};
 
 function getStripePromise(publishableKey: string) {
   if (!stripePromiseCache[publishableKey]) {
@@ -22,18 +22,9 @@ function getStripePromise(publishableKey: string) {
   return stripePromiseCache[publishableKey];
 }
 
-interface CheckoutPaymentFormProps {
-  publishableKey: string;
-  clientSecret: string;
-  reservationId: string;
-  confirmationNumber: string;
-}
-
 function PaymentConfirmForm({
-  reservationId,
   confirmationNumber,
 }: {
-  reservationId: string;
   confirmationNumber: string;
 }) {
   const stripe = useStripe();
@@ -219,10 +210,7 @@ export function CheckoutPaymentSection({
 
   return (
     <Elements stripe={stripePromise} options={{ clientSecret }}>
-      <PaymentConfirmForm
-        reservationId={reservationId}
-        confirmationNumber={confirmationNumber}
-      />
+      <PaymentConfirmForm confirmationNumber={confirmationNumber} />
     </Elements>
   );
 }
