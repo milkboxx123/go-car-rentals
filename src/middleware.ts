@@ -4,9 +4,17 @@ import type { NextRequest } from "next/server";
 import { AUTH_COOKIE_NAME, verifyJwt } from "@/lib/auth-jwt";
 
 const protectedPagePrefixes = ["/account"];
-const protectedApiPrefixes = ["/api/account", "/api/messages", "/api/stripe"];
+const protectedApiPrefixes = ["/api/account", "/api/messages", "/api/stripe", "/api/reservations"];
+
+function isStripeWebhook(pathname: string) {
+  return /^\/api\/stripe\/webhook\/[^/]+$/.test(pathname);
+}
 
 function isProtectedPath(pathname: string) {
+  if (isStripeWebhook(pathname)) {
+    return false;
+  }
+
   return (
     protectedPagePrefixes.some(
       (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
@@ -50,5 +58,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/account/:path*", "/api/account/:path*", "/api/messages/:path*", "/api/stripe/:path*"],
+  matcher: [
+    "/account/:path*",
+    "/api/account/:path*",
+    "/api/messages/:path*",
+    "/api/stripe/:path*",
+    "/api/reservations/:path*",
+  ],
 };

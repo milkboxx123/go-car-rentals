@@ -93,11 +93,9 @@ Add or verify these in **Project Settings → Environment Variables**:
 | Variable | Environments |
 |---|---|
 | `JWT_SECRET` | Production, Preview, Development |
+| `STRIPE_CREDENTIALS_ENCRYPTION_KEY` | Production, Preview, Development |
 | `POSTMARK_API_KEY` | Production, Preview |
 | `POSTMARK_FROM_EMAIL` | Production, Preview |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Production, Preview |
-| `STRIPE_SECRET_KEY` | Production, Preview |
-| `STRIPE_WEBHOOK_SECRET` | Production, Preview |
 | `NEXT_PUBLIC_SITE_URL` | Production, Preview |
 
 ## Postmark
@@ -107,29 +105,41 @@ Add or verify these in **Project Settings → Environment Variables**:
 3. Verify your sender domain (e.g. `gorentals.com`)
 4. Set `POSTMARK_FROM_EMAIL` to a verified sender address
 
-## Stripe
+## Stripe (per location)
 
-### Test keys (local / preview)
+Each location uses its **own Stripe account** (separate LLC). Keys are configured in the admin app under **Locations → Edit → Stripe Payments**, not in global env vars.
 
-Use `pk_test_...` and `sk_test_...` from the Stripe Dashboard.
+### Platform encryption key (both apps)
 
-### Webhook — local
+Generate a 32-byte key and add to `.env.local` and Vercel:
 
 ```bash
-stripe listen --forward-to localhost:3000/api/stripe/webhook
+openssl rand -base64 32
 ```
 
-Copy the printed `whsec_...` into `.env.local` as `STRIPE_WEBHOOK_SECRET`.
+| Variable | Environments |
+|---|---|
+| `STRIPE_CREDENTIALS_ENCRYPTION_KEY` | Production, Preview, Development |
 
-### Webhook — production
+### Per-location keys (stored in database via admin)
 
-Stripe Dashboard → Developers → Webhooks → Add endpoint:
+- Publishable key (`pk_test_...` / `pk_live_...`)
+- Secret key (`sk_test_...` / `sk_live_...`) — encrypted at rest
+- Webhook signing secret (`whsec_...`) — encrypted at rest
+
+### Webhook — per location
+
+Each LLC configures a webhook in their Stripe Dashboard:
 
 ```
-https://gorentals.com/api/stripe/webhook
+https://gorentals.com/api/stripe/webhook/{location-slug}
 ```
 
-Copy the signing secret into Vercel as `STRIPE_WEBHOOK_SECRET`.
+Example for Tampa: `https://gorentals.com/api/stripe/webhook/tampa`
+
+### Legacy global keys (deprecated)
+
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, and `STRIPE_WEBHOOK_SECRET` are no longer used for checkout. Remove them after migrating all locations to per-location keys.
 
 ## Security notes
 

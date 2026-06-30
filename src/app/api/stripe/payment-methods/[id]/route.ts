@@ -1,32 +1,40 @@
+import { NextRequest } from "next/server";
+
 import { jsonError, jsonOk } from "@/lib/api-utils";
 import { getCurrentUser } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
-import { getStripe } from "@/lib/stripe";
+import { getStripeForLocation } from "@/lib/stripe";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
     const user = await getCurrentUser();
     if (!user) {
       return jsonError("Unauthorized", 401);
     }
 
+    const locationId = request.nextUrl.searchParams.get("locationId");
+    if (!locationId) {
+      return jsonError("locationId is required");
+    }
+
     const { id } = await context.params;
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
+
+    const stripeCustomer = await prisma.userStripeCustomer.findUnique({
+      where: { userId_locationId: { userId: user.id, locationId } },
     });
 
-    if (!dbUser?.stripeCustomerId) {
+    if (!stripeCustomer) {
       return jsonError("Payment method not found", 404);
     }
 
-    const stripe = getStripe();
+    const stripe = await getStripeForLocation(locationId);
     const paymentMethod = await stripe.paymentMethods.retrieve(id);
 
-    if (paymentMethod.customer !== dbUser.stripeCustomerId) {
+    if (paymentMethod.customer !== stripeCustomer.stripeCustomerId) {
       return jsonError("Payment method not found", 404);
     }
 

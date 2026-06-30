@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { AccountFormGrid } from "@/components/account/account-form-grid";
 import { AccountSectionCard } from "@/components/account/account-section-card";
 import { TextInput } from "@/components/go/forms";
 import { Button } from "@/components/ui/button";
+import { UnsavedChangesDialog } from "@/components/ui/unsaved-changes-dialog";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 function formatPhoneInput(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -34,22 +36,18 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
     phone: formatPhoneInput(initialData.phone),
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const initialFormatted = useMemo(
-    () => ({
-      firstName: initialData.firstName,
-      lastName: initialData.lastName,
-      phone: formatPhoneInput(initialData.phone),
-    }),
-    [initialData.firstName, initialData.lastName, initialData.phone]
-  );
+  const [savedBaseline, setSavedBaseline] = useState(() => ({
+    firstName: initialData.firstName,
+    lastName: initialData.lastName,
+    phone: formatPhoneInput(initialData.phone),
+  }));
 
   const isDirty = useMemo(
     () =>
-      form.firstName !== initialFormatted.firstName ||
-      form.lastName !== initialFormatted.lastName ||
-      form.phone !== initialFormatted.phone,
-    [form, initialFormatted]
+      form.firstName !== savedBaseline.firstName ||
+      form.lastName !== savedBaseline.lastName ||
+      form.phone !== savedBaseline.phone,
+    [form, savedBaseline]
   );
 
   function updateField(field: keyof typeof form, value: string) {
@@ -58,9 +56,8 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
     setForm((current) => ({ ...current, [field]: next }));
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!isDirty) return;
+  const saveForm = useCallback(async (): Promise<boolean> => {
+    if (!isDirty) return true;
 
     setIsSubmitting(true);
 
@@ -79,18 +76,36 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
       if (!response.ok) {
         toast.error(data.error ?? "Unable to update profile");
-        return;
+        return false;
       }
 
       toast.success("Profile updated");
+      setSavedBaseline({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        phone: form.phone,
+      });
+      return true;
     } catch {
       toast.error("Unable to update profile");
+      return false;
     } finally {
       setIsSubmitting(false);
     }
+  }, [form, isDirty]);
+
+  const { dialogProps } = useUnsavedChanges({
+    isDirty,
+    onSave: saveForm,
+  });
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await saveForm();
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit}>
       <AccountSectionCard
         title="Personal information"
@@ -140,5 +155,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         </div>
       </AccountSectionCard>
     </form>
+    <UnsavedChangesDialog {...dialogProps} />
+    </>
   );
 }

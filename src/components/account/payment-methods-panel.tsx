@@ -6,9 +6,9 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { ShieldCheck } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { AccountSectionCard } from "@/components/account/account-section-card";
@@ -17,10 +17,16 @@ import { PaymentEmptyState } from "@/components/account/payment-empty-state";
 import { PaymentMethodCard } from "@/components/account/payment-method-card";
 import { PaymentSetupNotice } from "@/components/account/payment-setup-notice";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
-);
+interface LocationOption {
+  id: string;
+  slug: string;
+  marketName: string;
+  locationName: string;
+  stripePaymentsEnabled: boolean;
+  stripePublishableKey: string | null;
+}
 
 interface PaymentMethod {
   id: string;
@@ -28,6 +34,15 @@ interface PaymentMethod {
   last4: string;
   expMonth: number;
   expYear: number;
+}
+
+const stripePromiseCache: Record<string, Promise<Stripe | null>> = {};
+
+function getStripePromise(publishableKey: string) {
+  if (!stripePromiseCache[publishableKey]) {
+    stripePromiseCache[publishableKey] = loadStripe(publishableKey);
+  }
+  return stripePromiseCache[publishableKey];
 }
 
 function AddCardForm({ onSuccess }: { onSuccess: () => void }) {
@@ -75,18 +90,47 @@ function AddCardForm({ onSuccess }: { onSuccess: () => void }) {
 }
 
 export function PaymentMethodsPanel() {
+  const [locations, setLocations] = useState<LocationOption[]>([]);
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("");
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [setupError, setSetupError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
+  const selectedLocation = locations.find((l) => l.id === selectedLocationId) ?? null;
+
+  const stripePromise = useMemo(
+    () =>
+      selectedLocation?.stripePublishableKey
+        ? getStripePromise(selectedLocation.stripePublishableKey)
+        : null,
+    [selectedLocation?.stripePublishableKey]
+  );
+
+  useEffect(() => {
+    fetch("/api/locations?paymentsEnabled=true")
+      .then((res) => res.json())
+      .then((data) => {
+        const list = (data.locations ?? []) as LocationOption[];
+        setLocations(list);
+        if (list.length > 0) {
+          setSelectedLocationId(list[0].id);
+        }
+      })
+      .catch(() => setSetupError("Unable to load locations"));
+  }, []);
+
   const loadPaymentMethods = useCallback(async () => {
+    if (!selectedLocationId) return;
+
     setIsLoading(true);
     setSetupError(null);
 
     try {
-      const response = await fetch("/api/stripe/payment-methods");
+      const response = await fetch(
+        `/api/stripe/payment-methods?locationId=${encodeURIComponent(selectedLocationId)}`
+      );
       const data = await response.json();
 
       if (!response.ok) {
@@ -100,12 +144,16 @@ export function PaymentMethodsPanel() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [selectedLocationId]);
 
   const startAddCard = useCallback(async () => {
+    if (!selectedLocationId) return;
+
     try {
       const response = await fetch("/api/stripe/setup-intent", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locationId: selectedLocationId }),
       });
       const data = await response.json();
 
@@ -119,16 +167,18 @@ export function PaymentMethodsPanel() {
     } catch {
       toast.error("Unable to start card setup");
     }
-  }, []);
+  }, [selectedLocationId]);
 
   useEffect(() => {
     loadPaymentMethods();
   }, [loadPaymentMethods]);
 
   async function handleRemove(paymentMethodId: string) {
+    if (!selectedLocationId) return;
+
     try {
       const response = await fetch(
-        `/api/stripe/payment-methods/${paymentMethodId}`,
+        `/api/stripe/payment-methods/${paymentMethodId}?locationId=${encodeURIComponent(selectedLocationId)}`,
         { method: "DELETE" }
       );
       const data = await response.json();
@@ -153,15 +203,44 @@ export function PaymentMethodsPanel() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      {setupError ? (
-        <PaymentSetupNotice onRetry={loadPaymentMethods} />
+      {locations.length > 1 ? (
+        <AccountSectionCard
+          title="Location"
+          description="Saved cards are stored per location (each market has its own Stripe account)."
+        >
+          <div className="space-y-2">
+            <Label htmlFor="payment-location">Market</Label>
+            <select
+              id="payment-location"
+              className="w-full rounded-md border border-go-border bg-go-paper px-3 py-2 text-body-sm"
+              value={selectedLocationId}
+              onChange={(e) => {
+                setSelectedLocationId(e.target.value);
+                setShowAddForm(false);
+                setClientSecret(null);
+              }}
+            >
+              {locations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.marketName} — {location.locationName}
+                </option>
+              ))}
+            </select>
+          </div>
+        </AccountSectionCard>
       ) : null}
+
+      {setupError ? <PaymentSetupNotice onRetry={loadPaymentMethods} /> : null}
 
       <AccountSectionCard
         title="Saved payment methods"
-        description="Cards saved here can be used when you confirm a booking."
+        description={
+          selectedLocation
+            ? `Cards for ${selectedLocation.marketName}. Cards saved here apply to bookings at this location only.`
+            : "Cards saved here can be used when you confirm a booking."
+        }
         actions={
-          !showAddForm && !setupError ? (
+          !showAddForm && !setupError && selectedLocationId ? (
             <Button type="button" variant="outline" onClick={startAddCard}>
               Add card
             </Button>
@@ -187,14 +266,9 @@ export function PaymentMethodsPanel() {
             ))}
           </div>
         )}
-        {!isLoading && paymentMethods.length === 0 ? (
-          <p className="mt-4 text-center text-body-sm text-go-muted">
-            You can also add a payment method during checkout.
-          </p>
-        ) : null}
       </AccountSectionCard>
 
-      {showAddForm && clientSecret ? (
+      {showAddForm && clientSecret && stripePromise ? (
         <AccountSectionCard title="Add a card">
           <Elements stripe={stripePromise} options={{ clientSecret }}>
             <AddCardForm onSuccess={handleAddSuccess} />
