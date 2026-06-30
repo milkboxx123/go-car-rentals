@@ -1,53 +1,55 @@
+import { z } from "zod";
+
 import { jsonError, jsonOk } from "@/lib/api-utils";
 import { getCurrentUser } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
-import { getStripe } from "@/lib/stripe";
+import { assertLocationPaymentsReady, getStripeForLocation } from "@/lib/stripe";
+import { getOrCreateUserStripeCustomer } from "@/lib/stripe-customer";
 
-export async function POST() {
+const bodySchema = z.object({
+  locationId: z.string().min(1),
+});
+
+export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
     if (!user) {
       return jsonError("Unauthorized", 401);
     }
 
-    const stripe = getStripe();
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
-
-    if (!dbUser) {
-      return jsonError("User not found", 404);
+    const body = await request.json();
+    const parsed = bodySchema.safeParse(body);
+    if (!parsed.success) {
+      return jsonError(parsed.error.errors[0]?.message ?? "Invalid input");
     }
 
-    let customerId = dbUser.stripeCustomerId;
+    const { locationId } = parsed.data;
 
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: dbUser.email,
-        name: `${dbUser.firstName} ${dbUser.lastName}`,
-        phone: dbUser.phone,
-        metadata: { userId: dbUser.id },
-      });
-
-      customerId = customer.id;
-
-      await prisma.user.update({
-        where: { id: dbUser.id },
-        data: { stripeCustomerId: customerId },
-      });
+    const location = await prisma.location.findUnique({ where: { id: locationId } });
+    if (!location) {
+      return jsonError("Location not found", 404);
     }
+
+    try {
+      assertLocationPaymentsReady(location);
+    } catch {
+      return jsonError("Payments are not enabled for this location", 503);
+    }
+
+    const stripeCustomerId = await getOrCreateUserStripeCustomer(user.id, locationId);
+    const stripe = await getStripeForLocation(locationId);
 
     const setupIntent = await stripe.setupIntents.create({
-      customer: customerId,
+      customer: stripeCustomerId,
       payment_method_types: ["card"],
-      metadata: { userId: dbUser.id },
+      metadata: { userId: user.id, locationId },
     });
 
     if (!setupIntent.client_secret) {
       return jsonError("Unable to initialize payment setup", 500);
     }
 
-    return jsonOk({ clientSecret: setupIntent.client_secret });
+    return jsonOk({ clientSecret: setupIntent.client_secret, locationId });
   } catch (error) {
     console.error("Setup intent error:", error);
     return jsonError("Unable to initialize payment setup", 500);

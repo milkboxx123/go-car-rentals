@@ -3,10 +3,12 @@ import { z } from "zod";
 import { jsonError, jsonOk } from "@/lib/api-utils";
 import { getCurrentUser } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
-import { getStripe } from "@/lib/stripe";
+import { assertLocationPaymentsReady, getStripeForLocation } from "@/lib/stripe";
+import { getOrCreateUserStripeCustomer } from "@/lib/stripe-customer";
 
 const chargeSchema = z.object({
   reservationId: z.string().min(1),
+  locationId: z.string().min(1),
   paymentMethodId: z.string().min(1),
 });
 
@@ -24,41 +26,46 @@ export async function POST(request: Request) {
       return jsonError(parsed.error.errors[0]?.message ?? "Invalid input");
     }
 
-    const { reservationId, paymentMethodId } = parsed.data;
+    const { reservationId, locationId, paymentMethodId } = parsed.data;
 
     const reservation = await prisma.reservation.findFirst({
-      where: { id: reservationId, userId: user.id },
+      where: { id: reservationId, userId: user.id, locationId },
     });
 
     if (!reservation) {
       return jsonError("Reservation not found", 404);
     }
 
-    if (reservation.status !== "PENDING") {
-      return jsonError("This reservation has already been processed", 400);
+    if (reservation.paymentStatus === "PAID") {
+      return jsonError("This reservation has already been paid", 400);
     }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
-
-    if (!dbUser?.stripeCustomerId) {
-      return jsonError("No payment method on file", 400);
+    const location = await prisma.location.findUnique({ where: { id: locationId } });
+    if (!location) {
+      return jsonError("Location not found", 404);
     }
 
-    const stripe = getStripe();
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: reservation.totalAmount,
-      currency: "usd",
-      customer: dbUser.stripeCustomerId,
-      payment_method: paymentMethodId,
-      confirm: true,
-      off_session: true,
-      metadata: {
-        reservationId: reservation.id,
-        userId: user.id,
+    assertLocationPaymentsReady(location);
+
+    const stripeCustomerId = await getOrCreateUserStripeCustomer(user.id, locationId);
+    const stripe = await getStripeForLocation(locationId);
+
+    const paymentIntent = await stripe.paymentIntents.create(
+      {
+        amount: reservation.totalAmount,
+        currency: "usd",
+        customer: stripeCustomerId,
+        payment_method: paymentMethodId,
+        confirm: true,
+        off_session: true,
+        metadata: {
+          reservationId: reservation.id,
+          userId: user.id,
+          locationId,
+        },
       },
-    });
+      { idempotencyKey: `charge-${reservation.id}` }
+    );
 
     if (paymentIntent.status !== "succeeded") {
       return jsonError("Payment could not be completed", 402);
@@ -68,6 +75,7 @@ export async function POST(request: Request) {
       where: { id: reservation.id },
       data: {
         status: "CONFIRMED",
+        paymentStatus: "PAID",
         stripePaymentIntentId: paymentIntent.id,
       },
     });
